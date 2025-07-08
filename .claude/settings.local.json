@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "Bash(mkdir:*)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python -m pytest tests/test_config.py::test_get_env_var -v)",
+      "Bash(python -m pytest tests/test_git_monitor.py::test_git_monitor_initialization -v)",
+      "Bash(python -m pytest tests/test_cli.py -v)",
+      "Bash(python -m pytest tests/test_container_manager.py tests/test_credential_manager.py tests/test_config.py -v)",
+      "Bash(python -m pytest tests/test_web_ui.py::test_web_ui_initialization -v)",
+      "Bash(python -m pytest tests/ --tb=short)",
+      "Bash(python -m pytest tests/test_git_monitor.py::test_check_for_changes -v)",
+      "Bash(python -m pytest tests/test_web_ui.py::test_refresh_containers -v)",
+      "Bash(python -m pytest tests/test_web_ui.py -v)",
+      "Bash(python -m pytest tests/test_cli.py::test_web_command -v)",
+      "Bash(python:*)",
+      "Bash(mv:*)",
+      "Bash(py-claude-sandbox web:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": []
+  }
+}
