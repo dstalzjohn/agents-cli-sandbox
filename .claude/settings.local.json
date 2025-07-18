@@ -17,7 +17,8 @@
       "Bash(python:*)",
       "Bash(mv:*)",
       "Bash(py-claude-sandbox web:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

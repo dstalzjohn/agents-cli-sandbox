@@ -10,13 +10,7 @@ WORKDIR /usr/src/app
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TERM=xterm
 
-# Install system dependencies:
-# - git: for version control
-# - curl, gpg, apt-transport-https: for adding github-cli repository
-# - gnupg, software-properties-common: for managing repositories
-# - procps: provides 'ps' command, useful for debugging
-# - nodejs & npm: for installing claude-code
-# - curl: is also needed to install uv
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -30,9 +24,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv (a fast Python package installer and resolver)
-# The installation script places it in /root/.local/bin, so we add it to the PATH.
+# This is installed as root, we will adjust the PATH for the non-root user later
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.local/bin:${PATH}"
 
 # Install the GitHub CLI
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -44,7 +37,24 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
 # Install claude-code globally using npm
 RUN npm install -g @anthropic-ai/claude-code
 
-COPY commands .claude/commands
+# --- Create a non-root user to avoid permission issues ---
+# Create a group and user first
+RUN groupadd --gid 1000 devgroup && \
+    useradd --uid 1000 --gid devgroup --shell /bin/bash --create-home devuser
+
+# Copy your custom commands to the correct user's home directory
+# and set ownership at the same time. This is the correct location.
+COPY --chown=devuser:devgroup commands /home/devuser/.claude/commands
+COPY --chown=devuser:devgroup claude-settings/settings.json /home/devuser/.claude/settings.jsonmak
+
+# Give the new user ownership of the app directory
+RUN chown -R devuser:devgroup /usr/src/app
+
+# Switch to the non-root user
+USER devuser
+
+# Update PATH for the new user to find uv and other user-installed packages
+ENV PATH="/home/devuser/.local/bin:/root/.local/bin:${PATH}"
+
 # Default command to keep the container running in the background.
-# You can get an interactive shell by using 'docker exec'.
 CMD ["tail", "-f", "/dev/null"]
