@@ -29,13 +29,21 @@ run:
 	  --env-file .env \
 	  -d --name $(CONTAINER_NAME) $(IMAGE_NAME)
 
-# Stop and remove the container by its name.
-# Use: make stop_and_remove
-stop_and_remove:
+# Stop the container by its name.
+# Use: make stop
+stop:
 	@echo "Stopping container: $(CONTAINER_NAME)..."
 	@podman stop $(CONTAINER_NAME) || true
+
+# Remove the container by its name.
+# Use: make remove
+remove:
 	@echo "Removing container: $(CONTAINER_NAME)..."
 	@podman rm $(CONTAINER_NAME) || true
+
+# Stop and remove the container by its name.
+# Use: make stop_and_remove
+stop_and_remove: stop remove
 
 # A helper target to get an interactive shell inside the running container.
 # Use: make shell
@@ -43,4 +51,4 @@ shell:
 	@echo "Connecting to shell in container: $(CONTAINER_NAME)..."
 	@podman exec -it $(CONTAINER_NAME) /bin/bash
 
-.PHONY: build run stop_and_remove shell
+.PHONY: build run stop remove stop_and_remove shell
