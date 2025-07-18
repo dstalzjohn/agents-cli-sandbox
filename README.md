@@ -1,386 +1,222 @@
-# Python Claude Code Sandbox
+# Claude Code Development Container
 
-A Python implementation of Claude Code Sandbox - run Claude AI in isolated Podman/Docker containers with autonomous capabilities and real-time monitoring.
+A containerized development environment for working with Claude Code CLI in an isolated, reproducible setup.
+
+## What This Is
+
+This repository provides a **Podman/Docker container** that comes pre-configured with:
+
+- **Python 3.11** development environment
+- **Git** for version control
+- **GitHub CLI** (`gh`) for GitHub operations
+- **Claude Code CLI** for AI-assisted development
+- **Custom Claude commands** for enhanced workflows
 
 ## Prerequisites
 
-- Python 3.11+
-- Podman (recommended) or Docker
-- Git
-- GitHub CLI (`gh`)
-- Claude Code CLI
+- **Podman** (recommended) or Docker
+- **Git** (for cloning this repository)
 
-## Quick Setup
+## Quick Start
 
-### 1. Clone and Install
+### 1. Clone and Setup
 
 ```bash
 git clone https://github.com/your-repo/py-claude-sandbox.git
 cd py-claude-sandbox
-uv sync  # or pip install -e ".[dev]"
 ```
 
-### 2. Authentication Setup
+### 2. Create Environment File
 
 ```bash
-# Login to GitHub CLI
-gh auth login
-
-# Login to Claude Code CLI
-claude login
+# Create .env file with your credentials
+cat > .env << 'EOF'
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+GITHUB_TOKEN=your_github_token_here
+EOF
 ```
 
-### 3. Environment Setup
-
-Create a `.env` file in the project root:
+### 3. Container Management
 
 ```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit with your credentials
-# ANTHROPIC_API_KEY=your_api_key_here
-# GITHUB_TOKEN=your_github_token_here
-```
-
-### 4. Container Management with Makefile
-
-```bash
-# Build the development container
+# Build the container image
 make build
 
-# Run the container (requires .env file)
+# Run the container in detached mode
 make run
 
-# Get a shell inside the running container
+# Get an interactive shell inside the container
 make shell
 
-# Stop and remove the container
+# Stop the container
+make stop
+
+# Remove the container
+make remove
+
+# Stop and remove in one command
 make stop_and_remove
 ```
 
-## Development Workflow
+## Inside the Container
 
-### Container Operations
+Once you run `make shell`, you'll be in a fully configured development environment:
 
-The Makefile provides convenient commands for managing the development container:
-
-- `make build` - Build the container image with Python, Git, GitHub CLI, and Claude Code CLI
-- `make run` - Run the container in detached mode with environment variables from `.env`
-- `make shell` - Connect to an interactive shell inside the running container
-- `make stop_and_remove` - Stop and remove the container
-
-### Inside the Container
-
-Once you have a shell in the container (`make shell`), you can:
+### Available Tools
 
 ```bash
 # Verify installations
-python --version
-git --version
-gh --version
-claude --version
-
-# Work with the project
-cd /usr/src/app
-python main.py
+python --version     # Python 3.11
+git --version        # Git
+gh --version         # GitHub CLI
+claude --version     # Claude Code CLI
 ```
 
-## Authentication
+### Authentication
 
-### GitHub CLI Authentication
+The container automatically loads your credentials from the `.env` file:
 
 ```bash
-# Login with web browser
-gh auth login
-
-# Or use a token
-gh auth login --with-token < your_token.txt
-
-# Verify authentication
+# GitHub CLI should be authenticated
 gh auth status
-```
 
-### Claude Code CLI Authentication
-
-```bash
-# Login (will prompt for API key)
-claude login
-
-# Verify authentication
+# Claude Code CLI should be authenticated
 claude auth status
 ```
+
+### Custom Commands
+
+The container includes a custom Claude command located at `/home/devuser/.claude/commands/issue.md`:
+
+- **`claude issue`** - Smart DevOps workflow for handling GitHub issues and PR feedback
 
 ## Project Structure
 
 ```
 py-claude-sandbox/
-├── Dockerfile              # Container definition with all tools
-├── Makefile                # Container management commands
-├── .env                    # Environment variables (create from .env.example)
-├── main.py                 # Main application entry point
-├── pyproject.toml          # Python project configuration
-├── uv.lock                 # UV dependency lock file
-├── commands/               # Custom Claude Code commands
-├── claude-settings/        # Claude Code configuration
-├── tests/                  # Test suite
-└── docs/                   # Documentation
+├── Dockerfile              # Container definition
+├── Makefile               # Container management commands
+├── .env                   # Environment variables (you create this)
+├── README.md              # This file
+├── claude-settings/       # Claude Code CLI configuration
+│   └── settings.json      # Permissions and settings
+└── commands/              # Custom Claude commands
+    └── issue.md           # GitHub issue workflow command
 ```
 
-## Features
+## Makefile Commands
 
-- **Isolated Development** - Run Claude in secure Podman containers
-- **Pre-configured Environment** - Python, Git, GitHub CLI, and Claude Code CLI ready to use
-- **Environment Management** - Easy credential and configuration management
-- **Development Tools** - Testing, linting, and pre-commit hooks included
+| Command | Description |
+|---------|-------------|
+| `make build` | Build the container image |
+| `make run` | Run container in detached mode |
+| `make shell` | Open interactive shell in container |
+| `make stop` | Stop the running container |
+| `make remove` | Remove the container |
+| `make stop_and_remove` | Stop and remove container |
 
-## Web Interface
+## Environment Variables
 
-The web UI provides:
-
-### Dashboard
-- **Container Management** - Create, start, stop, remove containers
-- **Resource Monitoring** - View container status and resource usage
-- **Quick Actions** - One-click operations for common tasks
-
-### Terminal Interface
-- **Real-time Terminal** - Live terminal streaming with xterm.js
-- **Command Execution** - Execute commands directly in containers
-- **Copy/Paste Support** - Full terminal interaction capabilities
-
-### Git Monitoring
-- **Commit Notifications** - Real-time alerts when Claude makes commits
-- **Diff Visualization** - Syntax-highlighted diffs for all changes
-- **Branch Management** - View and switch between branches
-- **File Status** - Track modified, added, and deleted files
-
-### Configuration
-- **JSON Editor** - Edit container and sandbox configurations
-- **Credential Management** - Manage API keys and authentication
-- **Environment Variables** - Configure container environments
-
-## Configuration
-
-### Default Configuration
-
-The sandbox creates a default configuration file at `~/.py-claude-sandbox.yaml`:
-
-```yaml
-container:
-  name: claude-sandbox
-  image: python:3.11-slim
-  ports:
-    "9876": 9876
-  environment:
-    PYTHONPATH: /workspace
-    TERM: xterm-256color
-  volumes:
-    /current/directory: /workspace
-  working_dir: /workspace
-  command: null
-
-credentials: []
-git_repo: null
-git_branch: null
-web_port: 9876
-auto_commit: true
-claude_flags:
-  - "--dangerously-skip-permissions"
-```
-
-### Credential Discovery
-
-The sandbox automatically discovers and forwards credentials:
-
-- **Anthropic API**: `ANTHROPIC_API_KEY` environment variable, `~/.anthropic/config.json`
-- **GitHub**: `GITHUB_TOKEN` environment variable, `~/.gitconfig`
-- **OpenAI**: `OPENAI_API_KEY` environment variable
-- **Google**: `GOOGLE_APPLICATION_CREDENTIALS` environment variable
-- **AWS**: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `~/.aws/credentials`
-
-## Development
-
-### Running Tests
+Create a `.env` file in the project root with:
 
 ```bash
-# Run all tests
-pytest
+# Required
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
-# Run with coverage
-pytest --cov=py_claude_sandbox
-
-# Run specific test file
-pytest tests/test_web_ui.py -v
-
-# Run with live logs
-pytest -s
+# Optional (for GitHub integration)
+GITHUB_TOKEN=your_github_token_here
 ```
 
-### Code Quality
+## Usage Examples
+
+### Working with GitHub Issues
 
 ```bash
-# Format code
-ruff format
-
-# Lint code
-ruff check
-
-# Run pre-commit hooks
-pre-commit run --all-files
+# Inside the container
+claude issue https://github.com/owner/repo/issues/123
 ```
 
-### Project Structure
+This will intelligently handle the issue by either:
+- Improving an existing PR based on review feedback
+- Creating a new PR implementation from scratch
 
-```
-py-claude-sandbox/
-├── py_claude_sandbox/
-│   ├── __init__.py
-│   ├── cli.py              # Typer CLI interface
-│   ├── web_ui.py           # NiceGUI web interface
-│   ├── container_manager.py # Podman/Docker management
-│   ├── credential_manager.py # Credential discovery
-│   ├── git_monitor.py      # Git monitoring and notifications
-│   ├── config.py           # Configuration management
-│   └── types.py            # Type definitions
-├── tests/
-│   ├── test_cli.py
-│   ├── test_web_ui.py
-│   ├── test_container_manager.py
-│   ├── test_credential_manager.py
-│   ├── test_git_monitor.py
-│   └── test_config.py
-├── static/                 # Static files for web UI
-├── pyproject.toml          # Project configuration
-├── .pre-commit-config.yaml # Pre-commit hooks
-└── README.md
+### Regular Development
+
+```bash
+# Start a new Claude session
+claude
+
+# Use Claude with specific files
+claude --file src/main.py --file tests/test_main.py
+
+# Work with a specific repository
+git clone https://github.com/user/repo.git
+cd repo
+claude
 ```
 
-## Security
+## Custom Commands
 
-### Sandboxing
-- Containers run in isolated environments
-- Volume mounts are restricted to specified directories
-- Network access can be controlled per container
+### Issue Command
 
-### Credential Handling
-- Credentials are forwarded securely as environment variables
-- Sensitive files are mounted with appropriate permissions
-- No credentials are stored in container images
+The `issue` command provides a smart DevOps workflow:
 
-### Claude Permissions
-- Uses `--dangerously-skip-permissions` flag for autonomous operation
-- Isolated from host system through containerization
-- Git operations are contained within the sandbox
+- **Detects existing PRs** for the issue
+- **Analyzes review feedback** and creates improvement checklists
+- **Implements fixes** based on review comments
+- **Creates new PRs** with comprehensive templates
+- **Follows TDD approach** for new features
 
 ## Troubleshooting
 
 ### Container Issues
 
 ```bash
-# Check container logs
-podman logs claude-sandbox
+# Check if container is running
+podman ps
+
+# View container logs
+podman logs my-dev-client
 
 # Inspect container
-podman inspect claude-sandbox
-
-# Access container directly
-podman exec -it claude-sandbox /bin/bash
+podman inspect my-dev-client
 ```
 
-### Web UI Issues
+### Authentication Issues
 
 ```bash
-# Check if port is available
-netstat -tlnp | grep :9876
+# Re-authenticate GitHub CLI
+gh auth login
 
-# Start with debug logging
-py-claude-sandbox web --host 0.0.0.0 --port 9876 --log-level debug
+# Re-authenticate Claude Code CLI
+claude login
 ```
 
-### Git Issues
+### Permission Issues
 
 ```bash
-# Check git configuration in container
-py-claude-sandbox exec my-sandbox git config --list
+# Check file permissions
+ls -la /home/devuser/.claude/
 
-# Verify git repository
-py-claude-sandbox exec my-sandbox git status
+# The container runs as non-root user 'devuser'
+whoami  # Should show 'devuser'
 ```
 
-## API Reference
+## Why Use This Container?
 
-### CLI Commands
-
-| Command | Description | Options |
-|---------|-------------|---------|
-| `create` | Create new container | `--name`, `--image`, `--port`, `--repo`, `--branch` |
-| `start` | Start container | `--podman/--no-podman` |
-| `stop` | Stop container | `--podman/--no-podman` |
-| `remove` | Remove container | `--force`, `--podman/--no-podman` |
-| `list` | List containers | `--podman/--no-podman` |
-| `cleanup` | Clean up all containers | `--force`, `--podman/--no-podman` |
-| `web` | Start web UI | `--host`, `--port`, `--podman/--no-podman` |
-
-### Python API
-
-```python
-from py_claude_sandbox import ContainerManager, ConfigManager, create_web_ui
-
-# Create managers
-container_manager = ContainerManager(use_podman=True)
-config_manager = ConfigManager()
-
-# Create container
-container_id = container_manager.create_container(config)
-container_manager.start_container(container_id)
-
-# Start web UI
-web_ui = create_web_ui(container_manager, config_manager)
-web_ui.run(host="0.0.0.0", port=8080)
-```
+1. **Isolation** - Keep development tools isolated from your host system
+2. **Reproducibility** - Same environment across different machines
+3. **Pre-configured** - All tools installed and configured
+4. **Custom Commands** - Enhanced workflows for common tasks
+5. **Non-root Security** - Runs as unprivileged user
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Setup
-
-```bash
-# Clone repository
-git clone https://github.com/your-repo/py-claude-sandbox.git
-cd py-claude-sandbox
-
-# Install in development mode
-pip install -e ".[dev]"
-
-# Install pre-commit hooks
-pre-commit install
-
-# Run tests
-pytest
-```
+2. Make your changes to the Dockerfile or commands
+3. Test with `make build && make run && make shell`
+4. Submit a pull request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- [Claude Code](https://claude.ai/code) - The original Claude Code tool
-- [TextCortex Claude Code Sandbox](https://github.com/textcortex/claude-code-sandbox) - Inspiration for this project
-- [NiceGUI](https://nicegui.io/) - Beautiful Python web framework
-- [xterm.js](https://xtermjs.org/) - Terminal emulator for the web
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/your-repo/py-claude-sandbox/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-repo/py-claude-sandbox/discussions)
-- **Documentation**: [Full Documentation](https://your-repo.github.io/py-claude-sandbox/)
-
----
-
-**Made with Python**
+This project is licensed under the MIT License.
