@@ -56,8 +56,9 @@ USER devuser
 # Update PATH for the new user to find uv and other user-installed packages
 ENV PATH="/home/devuser/.local/bin:/root/.local/bin:${PATH}"
 
-# Copy the source code
+# Copy the source code and Claude configuration
 COPY --chown=devuser:devgroup src/ /usr/src/app/src/
+COPY --chown=devuser:devgroup CLAUDE.md /usr/src/app/
 
 # Install the package using pip
 RUN pip install -e src/
