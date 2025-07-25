@@ -1,5 +1,42 @@
 # Claude Code Configuration
 
+## IMPORTANT: Todo File Management
+
+Claude must work with a todo file to show its current status and progress. The file should be named `claude_todo.json`.
+
+### Todo File Format
+
+```json
+{
+  "description": "Task description here",
+  "todos": [
+    {
+      "description": "Todo item description",
+      "status": "open"
+    },
+    {
+      "description": "Another todo item",
+      "status": "working"
+    }
+  ]
+}
+```
+
+### Status Values
+- `open`: Todo item is planned but not started
+- `working`: Currently working on this todo item
+- `done`: Todo item is completed
+- `reviewed`: Todo item has been completed and reviewed
+
+### Claude's Required Workflow
+
+1. **Create and plan**: Create a todo list and write it in JSON format to `claude_todo.json`
+2. **Work sequentially**: Work on each todo item consequently
+3. **Update progress**: After each step, update the todo list status
+4. **Review**: Review all items at the end and mark them as reviewed
+
+This ensures transparency and allows tracking of Claude's progress on any given command or task.
+
 ## Git Configuration
 
 When working with git operations, always use HTTPS URLs instead of SSH to avoid authentication issues in containerized environments.
