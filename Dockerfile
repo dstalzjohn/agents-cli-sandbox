@@ -56,5 +56,11 @@ USER devuser
 # Update PATH for the new user to find uv and other user-installed packages
 ENV PATH="/home/devuser/.local/bin:/root/.local/bin:${PATH}"
 
+# Copy the source code
+COPY --chown=devuser:devgroup src/ /usr/src/app/src/
+
+# Install the package using pip
+RUN pip install -e src/
+
 # Default command to keep the container running in the background.
 CMD ["tail", "-f", "/dev/null"]
