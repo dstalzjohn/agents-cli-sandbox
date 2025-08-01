@@ -1,6 +1,7 @@
 # Use an official Python runtime as a parent image
 # The Python version can be specified at build time with --build-arg PYTHON_VERSION=3.9
 ARG PYTHON_VERSION=3.11
+ARG REPO_URL=https://github.com/username/repository.git
 FROM python:${PYTHON_VERSION}-slim
 
 # Set the working directory in the container
@@ -42,10 +43,16 @@ RUN npm install -g @anthropic-ai/claude-code
 RUN groupadd --gid 1000 devgroup && \
     useradd --uid 1000 --gid devgroup --shell /bin/bash --create-home devuser
 
+# Set repo URL as environment variable
+ENV REPO_URL=${REPO_URL}
+
 # Copy your custom commands to the correct user's home directory
 # and set ownership at the same time. This is the correct location.
 COPY --chown=devuser:devgroup commands /home/devuser/.claude/commands
-COPY --chown=devuser:devgroup claude-settings/settings.json /home/devuser/.claude/settings.jsonmak
+COPY --chown=devuser:devgroup claude-settings/settings.json /home/devuser/.claude/settings.json
+
+# Copy scripts folder to container
+COPY --chown=devuser:devgroup scripts/ /usr/src/app/scripts/
 
 # Give the new user ownership of the app directory
 RUN chown -R devuser:devgroup /usr/src/app
