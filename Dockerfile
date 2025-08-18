@@ -61,14 +61,20 @@ RUN chown -R devuser:devgroup /usr/src/app
 USER devuser
 
 # Update PATH for the new user to find uv and other user-installed packages
-ENV PATH="/home/devuser/.local/bin:/root/.local/bin:${PATH}"
+# Fixed: Remove /root/.local/bin as we're running as devuser, not root
+ENV PATH="/home/devuser/.local/bin:${PATH}"
 
 # Copy the source code and Claude configuration
 COPY --chown=devuser:devgroup src/ /usr/src/app/src/
 COPY --chown=devuser:devgroup CLAUDE.md /usr/src/app/
 
-# Install the package using pip
-RUN pip install -e src/
+# Install Python development tools and the package
+RUN pip install --user --upgrade pip setuptools wheel && \
+    pip install --user -e /usr/src/app/src/
+
+# Add a health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD python -c "import sys; import acs; sys.exit(0)" || exit 1
 
 # Default command to keep the container running in the background.
 CMD ["tail", "-f", "/dev/null"]
