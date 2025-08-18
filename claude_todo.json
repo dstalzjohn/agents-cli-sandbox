@@ -23,11 +23,11 @@
     },
     {
       "description": "Create semantic commits",
-      "status": "working"
+      "status": "done"
     },
     {
       "description": "Create pull request",
-      "status": "open"
+      "status": "working"
     }
   ]
 }
