@@ -18,7 +18,6 @@ RUN apt-get update && apt-get install -y \
     gpg \
     apt-transport-https \
     gnupg \
-    software-properties-common \
     procps \
     nodejs \
     npm \
@@ -35,7 +34,12 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && apt-get update \
     && apt-get install gh -y
 
-# Install claude-code globally using npm
+RUN curl -sS https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor | tee /etc/apt/trusted.gpg.d/adoptium.gpg > /dev/null
+RUN echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
+RUN apt-get update
+RUN apt-get install temurin-21-jdk -y
+
+    # Install claude-code globally using npm
 RUN npm install -g @anthropic-ai/claude-code
 
 # --- Create a non-root user to avoid permission issues ---
@@ -66,6 +70,7 @@ ENV PATH="/home/devuser/.local/bin:${PATH}"
 
 # Copy the source code and Claude configuration
 COPY --chown=devuser:devgroup src/ /usr/src/app/src/
+COPY --chown=devuser:devgroup pyproject.toml /usr/src/app/src/
 COPY --chown=devuser:devgroup CLAUDE.md /usr/src/app/
 
 # Install Python development tools and the package
