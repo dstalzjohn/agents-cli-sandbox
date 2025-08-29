@@ -14,8 +14,9 @@ This repository provides a **Podman/Docker container** that comes pre-configured
 
 ## Prerequisites
 
-- **Podman** (recommended) or Docker
+- **Docker** or **Podman** (container runtime)
 - **Git** (for cloning this repository)
+- **Make** (for using the Makefile commands)
 
 ## Quick Start
 
@@ -36,7 +37,14 @@ GITHUB_TOKEN=your_github_token_here
 EOF
 ```
 
-### 3. Container Management
+### 3. Verify Setup
+
+```bash
+# Run setup verification script
+./scripts/docker-setup.sh
+```
+
+### 4. Container Management
 
 ```bash
 # Build the container image
@@ -56,6 +64,13 @@ make remove
 
 # Stop and remove in one command
 make stop_and_remove
+
+# Use Docker Compose (if available)
+make compose-up    # Start services
+make compose-down  # Stop services
+
+# Show runtime information
+make info
 ```
 
 ## Inside the Container
@@ -93,15 +108,28 @@ The container includes a custom Claude command located at `/home/devuser/.claude
 ## Project Structure
 
 ```
-py-claude-sandbox/
+agents-cli-sandbox/
 ├── Dockerfile              # Container definition
+├── docker-compose.yml      # Docker Compose configuration
+├── .dockerignore          # Files to exclude from build context
 ├── Makefile               # Container management commands
 ├── .env                   # Environment variables (you create this)
+├── sample.env             # Template for environment variables
 ├── README.md              # This file
+├── CLAUDE.md              # Claude-specific instructions
+├── pyproject.toml         # Python project configuration
 ├── claude-settings/       # Claude Code CLI configuration
 │   └── settings.json      # Permissions and settings
-└── commands/              # Custom Claude commands
-    └── issue.md           # GitHub issue workflow command
+├── commands/              # Custom Claude commands
+│   └── issue.md           # GitHub issue workflow command
+├── scripts/               # Utility scripts
+│   ├── docker-setup.sh    # Setup verification script
+│   ├── init.sh           # Container initialization
+│   └── update.sh         # Update script
+└── src/                   # Source code
+    └── acs/              # Main package
+        ├── __init__.py
+        └── taskrunner.py
 ```
 
 ## Makefile Commands
@@ -114,6 +142,11 @@ py-claude-sandbox/
 | `make stop` | Stop the running container |
 | `make remove` | Remove the container |
 | `make stop_and_remove` | Stop and remove container |
+| `make start` | Start a stopped container |
+| `make logs` | View container logs |
+| `make compose-up` | Start with docker-compose |
+| `make compose-down` | Stop with docker-compose |
+| `make info` | Show runtime information |
 
 ## Environment Variables
 
@@ -172,14 +205,17 @@ The `issue` command provides a smart DevOps workflow:
 ### Container Issues
 
 ```bash
-# Check if container is running
-podman ps
+# Check if container is running (works with Docker or Podman)
+docker ps  # or podman ps
 
 # View container logs
-podman logs my-dev-client
+make logs
 
 # Inspect container
-podman inspect my-dev-client
+docker inspect my-dev-client  # or podman inspect
+
+# Verify runtime being used
+make info
 ```
 
 ### Authentication Issues

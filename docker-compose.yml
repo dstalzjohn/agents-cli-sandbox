@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  dev-client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PYTHON_VERSION: "3.11"
+        REPO_URL: "${REPO_URL:-https://github.com/dstalzjohn/agents-cli-sandbox.git}"
+    image: dev-client-env:latest
+    container_name: my-dev-client
+    environment:
+      - REPO_URL=${REPO_URL:-https://github.com/dstalzjohn/agents-cli-sandbox.git}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      # Mount the current directory for development
+      - ./src:/usr/src/app/src:rw
+      - ./scripts:/usr/src/app/scripts:rw
+      - ./commands:/home/devuser/.claude/commands:rw
+      - ./claude-settings:/home/devuser/.claude:rw
+      # Persist pip packages
+      - dev-pip-cache:/home/devuser/.cache/pip
+      # Persist uv cache
+      - dev-uv-cache:/home/devuser/.cache/uv
+    working_dir: /usr/src/app
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  dev-pip-cache:
+  dev-uv-cache:
