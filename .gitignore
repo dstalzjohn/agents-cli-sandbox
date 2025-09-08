@@ -173,3 +173,5 @@ node_modules/
 # Docker
 .dockerignore
 tasks
+
+# Claude todo tracking
